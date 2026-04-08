@@ -1,0 +1,1 @@
+SELECT s.* FROM "parcels" AS s INNER JOIN "flood_zones" AS r ON ST_Within(s.geom, r.geom);

@@ -1,0 +1,142 @@
+# nlgeo — Natural Language to Geometry
+# Cursor Rules
+
+## Project Identity
+This is a Python library that compiles natural language spatial descriptions into
+executable geometry code. The output is a translator, not a GIS connector. The library
+produces SQL, Python, or filter expressions — it does not execute them (unless the
+caller explicitly requests execution via a provided connection).
+
+## Architecture Layers (never collapse these)
+1. **Input** — natural language string + SpatialContext + Schema
+2. **Compiler** — IntentParser → AmbiguityResolver → LLM backend → CodeGenerator
+3. **Output** — TranslationResult (query, assumptions, alternatives, confidence)
+4. **Dialects** — PostGIS SQL, GeoPandas/Shapely, GeoJSON filter, OGC CQL2, DuckDB spatial
+
+Each layer is a separate module. Do not mix dialect logic into the compiler core.
+Do not put LLM calls inside dialect renderers.
+
+## Core Types (always import from nlgeo.types, never redefine inline)
+- `SpatialContext` — domain, bbox, units, srid, schema
+- `Schema` — tables: list[TableMeta], loaded from PostGIS introspection or dict
+- `TranslationResult` — query: str, dialect: Dialect, assumptions: dict[str, str],
+  alternatives: list[TranslationResult], confidence: float
+- `Dialect` — enum: POSTGIS | GEOPANDAS | GEOJSON | CQL2 | DUCKDB
+
+## LLM Backend Rules
+- LLM calls live exclusively in `nlgeo/llm/` — never call an LLM from compiler or dialect code
+- Always inject schema context and spatial context into the system prompt
+- Always request structured output (JSON) from the LLM — parse with Pydantic, never regex
+- Wrap every LLM call in a retry with exponential backoff (max 3 attempts)
+- Support: claude (default), openai, ollama. Backend is selected via `Engine(llm="claude")`
+- Never hardcode model names outside `nlgeo/llm/backends/` — use constants
+
+## Ambiguity Resolution
+- Ambiguous spatial terms that require domain context: near, close, adjacent, along,
+  within walking distance, next to, beside, surrounding
+- Each ambiguous term maps to a resolver function in `nlgeo/resolver/terms.py`
+- Resolvers receive `SpatialContext` and return a resolved predicate + assumption string
+- Never silently pick a default — always surface the assumption in TranslationResult
+- Unit conversion is mandatory: always normalize to meters internally, convert back for display
+
+## Schema Injection
+- Schema introspection for PostGIS: `nlgeo.schema.from_postgis(conn)` — reads
+  geometry_columns, information_schema.columns, spatial_ref_sys
+- Schema can also be provided as a plain dict for testing / offline use
+- In LLM prompts, serialize schema as compact JSON — include: table name, column names,
+  geometry type, SRID, and a one-line description if available
+- Column names must match exactly — hallucinated column names are a critical failure
+
+## Code Generation Rules
+- Generated SQL must be parameterized (use %s placeholders, never f-strings with user values)
+- All spatial operations must reference the correct SRID — never assume 4326
+- ST_DWithin distances must be in the CRS unit (meters for projected, degrees for geographic)
+  — include a comment in generated SQL when unit conversion was applied
+- GeoPandas output must be valid Python that can be exec'd in a clean environment with
+  geopandas and shapely imported — no other dependencies assumed
+- GeoJSON filter output must be valid GeoJSON filter per RFC 7946
+
+## TranslationResult Contract
+The result object is the public API surface. Never change its shape without a major version bump.
+- `query` — the primary generated expression (string)
+- `dialect` — which dialect was generated
+- `assumptions` — dict mapping ambiguous terms to their resolved values,
+  e.g. {"near": "within 50 meters (utility_network domain default)"}
+- `alternatives` — list of up to 2 alternative interpretations with different thresholds
+- `confidence` — float 0.0–1.0; below 0.6 should warn the user
+
+## Testing Requirements
+- Every ambiguity resolver must have a unit test with at least 3 domain contexts
+- Every dialect renderer must have a round-trip test: NL input → generate → validate syntax
+- PostGIS dialect tests run against a real PostGIS instance (see TESTING.md for local setup)
+- Use pytest fixtures for SpatialContext and Schema — never construct them inline in tests
+- Snapshot tests for generated SQL — diffs must be reviewed before merging
+
+## File Structure
+```
+nlgeo/
+  __init__.py          # public API: Engine, SpatialContext, Schema, TranslationResult
+  engine.py            # Engine class — orchestrates the pipeline
+  types.py             # all shared types / dataclasses / enums
+  schema.py            # Schema introspection and serialization
+  compiler/
+    intent.py          # IntentParser
+    resolver/
+      __init__.py
+      terms.py         # per-term resolver functions
+      domains.py       # domain-specific threshold tables
+    codegen/
+      __init__.py
+      postgis.py
+      geopandas.py
+      geojson.py
+      cql2.py
+      duckdb.py
+  llm/
+    __init__.py
+    prompt.py          # prompt assembly (schema + context injection)
+    backends/
+      claude.py
+      openai.py
+      ollama.py
+  tests/
+    conftest.py
+    test_resolver.py
+    test_codegen_postgis.py
+    test_codegen_geopandas.py
+    test_engine_integration.py
+```
+
+## Public API Surface (Engine class)
+```python
+engine = nlgeo.Engine(llm="claude", context=SpatialContext(...))
+result = engine.translate("find all manholes within 50 feet of a gas line")
+result = engine.translate("...", dialect=Dialect.GEOPANDAS)
+gdf = engine.execute(result, conn)            # optional — requires sqlalchemy conn
+schema = nlgeo.Schema.from_postgis(conn)      # introspect live DB
+schema = nlgeo.Schema.from_dict({...})        # offline / test
+```
+
+## What NOT to build in v1
+- No streaming / async translate (add in v2)
+- No feedback loop / correction storage (v3)
+- No web UI or CLI (separate package)
+- No direct database drivers — callers provide their own connection
+- No support for raster operations
+- No vector tile output dialect
+
+## Naming Conventions
+- Classes: PascalCase
+- Public functions and methods: snake_case
+- Dialect enum values: SCREAMING_SNAKE
+- Test fixtures: descriptive snake_case, prefixed with the type they return
+  e.g. `utility_context`, `parcel_schema`, `postgis_conn`
+
+## Commit Convention
+feat: / fix: / test: / refactor: / docs:
+Breaking changes require BREAKING CHANGE: footer in commit body.
+
+## Dependencies (keep minimal)
+Required: pydantic, anthropic (or openai), shapely, pyproj
+Optional (extras): geopandas, sqlalchemy, psycopg2
+Dev: pytest, pytest-snapshot, black, ruff, mypy
