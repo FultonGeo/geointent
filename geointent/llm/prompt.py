@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from nlgeo.compiler.resolver import domains
-from nlgeo.types import SpatialContext
+from geointent.compiler.resolver import domains
+from geointent.types import SpatialContext
 
 
 def build_system_prompt(ctx: SpatialContext) -> str:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from nlgeo.types import IntentResult, SpatialContext
-from nlgeo.units import to_meters
+from geointent.types import IntentResult, SpatialContext
+from geointent.units import to_meters
 
 
 def _meters_to_crs_distance(distance_m: float, ctx: SpatialContext) -> tuple[float, str | None]:

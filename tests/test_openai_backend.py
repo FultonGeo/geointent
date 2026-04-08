@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.llm.backends.openai import OpenAIBackend
-from nlgeo.types import IntentResult, LLMError
+from geointent.llm.backends.openai import OpenAIBackend
+from geointent.types import IntentResult, LLMError
 
 
 def _sample():

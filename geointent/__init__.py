@@ -1,8 +1,8 @@
-"""geointent — natural language to spatial geometry (PyPI: ``geoint``, import: ``nlgeo``)."""
+"""geointent — natural language to spatial geometry (`pip install geointent`)."""
 
-from nlgeo.engine import Engine
-from nlgeo.schema import from_postgis
-from nlgeo.types import (
+from geointent.engine import Engine
+from geointent.schema import from_postgis
+from geointent.types import (
     Dialect,
     IntentResult,
     LLMError,

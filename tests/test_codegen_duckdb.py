@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from nlgeo.compiler.codegen import duckdb as duckdb_codegen
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.compiler.codegen import duckdb as duckdb_codegen
+from geointent.types import IntentResult, SpatialContext
 
 
 def test_duckdb_dwithin_sql(utility_context):

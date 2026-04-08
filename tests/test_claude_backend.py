@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.llm.backends.claude import ClaudeBackend
-from nlgeo.types import IntentResult, LLMError
+from geointent.llm.backends.claude import ClaudeBackend
+from geointent.types import IntentResult, LLMError
 
 
 def _sample_intent_dict():

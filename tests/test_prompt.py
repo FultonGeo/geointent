@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from nlgeo.llm import prompt
+from geointent.llm import prompt
 
 
 def test_prompt_contains_schema(utility_context):

@@ -1,4 +1,4 @@
-# TESTING.md — nlgeo Testing Strategy
+# TESTING.md — geointent testing strategy
 
 ## Overview
 
@@ -150,9 +150,12 @@ CREATE TABLE flood_zones (
 
 ### Integration test examples
 ```python
+import geointent
+from geointent.types import SpatialContext
+
 def test_postgis_near_query_executes(postgis_conn, utility_schema):
-    engine = nlgeo.Engine(llm="mock", context=SpatialContext(
-        schema=nlgeo.Schema.from_postgis(postgis_conn),
+    engine = geointent.Engine(llm="mock", context=SpatialContext(
+        schema=geointent.Schema.from_postgis(postgis_conn),
         domain="utility_network",
         units="feet",
         srid=2965
@@ -165,7 +168,7 @@ def test_postgis_near_query_executes(postgis_conn, utility_schema):
     assert len(gdf) >= 1
 
 def test_assumptions_surfaced(postgis_conn, utility_schema):
-    engine = nlgeo.Engine(llm="mock", context=...)
+    engine = geointent.Engine(llm="mock", context=...)
     result = engine.translate("pipes near the river")
     assert "near" in result.assumptions
     assert "meters" in result.assumptions["near"].lower()
@@ -209,10 +212,10 @@ def test_overture_places_indy():
         LIMIT 500
     """).fetchdf()
 
-    # Now test that nlgeo can translate against this schema
+    # Now test that geointent can translate against this schema
     # (register the df as a DuckDB table, then run a translation)
     conn.register("indy_places", result)
-    # ... nlgeo Engine with DuckDB dialect against this schema
+    # ... geointent Engine with DuckDB dialect against this schema
 ```
 
 **Available Overture themes for testing:**
@@ -272,6 +275,7 @@ This is the easiest option if you don't want Docker locally at all.
 
 ```python
 # conftest.py fixtures
+import geointent
 
 @pytest.fixture(scope="session")
 def postgis_conn():
@@ -282,7 +286,7 @@ def postgis_conn():
 @pytest.fixture
 def utility_schema():
     """Pre-built Schema for utility network test DB"""
-    return nlgeo.Schema.from_dict({
+    return geointent.Schema.from_dict({
         "tables": [
             {"name": "gas_lines", "geom_column": "geom", "geom_type": "LINESTRING",
              "srid": 2965, "columns": ["id","name","material","install_year","geom"]},
@@ -295,7 +299,7 @@ def utility_schema():
 
 @pytest.fixture
 def utility_context(utility_schema):
-    return nlgeo.SpatialContext(
+    return geointent.SpatialContext(
         schema=utility_schema,
         domain="utility_network",
         units="feet",

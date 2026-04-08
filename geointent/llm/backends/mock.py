@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.types import IntentResult, SpatialContext
 
 
 class MockLLMBackend:

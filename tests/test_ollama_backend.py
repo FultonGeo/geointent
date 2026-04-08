@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.llm.backends.ollama import OllamaBackend
-from nlgeo.types import LLMError
+from geointent.llm.backends.ollama import OllamaBackend
+from geointent.types import LLMError
 
 
 def _sample():

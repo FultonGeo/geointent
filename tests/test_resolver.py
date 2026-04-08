@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.compiler.resolver import terms
-from nlgeo.types import SpatialContext
+from geointent.compiler.resolver import terms
+from geointent.types import SpatialContext
 
 
 def test_resolver_near_utility(utility_context):

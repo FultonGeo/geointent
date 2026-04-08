@@ -1,9 +1,5 @@
----
-description: nlgeo — Natural Language to Geometry; architecture, types, LLM rules, testing, and conventions
-alwaysApply: true
----
-
-# nlgeo — Natural Language to Geometry
+# geointent — Natural Language to Geometry
+# Cursor Rules
 
 ## Project Identity
 This is a Python library that compiles natural language spatial descriptions into
@@ -20,7 +16,7 @@ caller explicitly requests execution via a provided connection).
 Each layer is a separate module. Do not mix dialect logic into the compiler core.
 Do not put LLM calls inside dialect renderers.
 
-## Core Types (always import from nlgeo.types, never redefine inline)
+## Core Types (always import from geointent.types, never redefine inline)
 - `SpatialContext` — domain, bbox, units, srid, schema
 - `Schema` — tables: list[TableMeta], loaded from PostGIS introspection or dict
 - `TranslationResult` — query: str, dialect: Dialect, assumptions: dict[str, str],
@@ -28,23 +24,23 @@ Do not put LLM calls inside dialect renderers.
 - `Dialect` — enum: POSTGIS | GEOPANDAS | GEOJSON | CQL2 | DUCKDB
 
 ## LLM Backend Rules
-- LLM calls live exclusively in `nlgeo/llm/` — never call an LLM from compiler or dialect code
+- LLM calls live exclusively in `geointent/llm/` — never call an LLM from compiler or dialect code
 - Always inject schema context and spatial context into the system prompt
 - Always request structured output (JSON) from the LLM — parse with Pydantic, never regex
 - Wrap every LLM call in a retry with exponential backoff (max 3 attempts)
 - Support: claude (default), openai, ollama. Backend is selected via `Engine(llm="claude")`
-- Never hardcode model names outside `nlgeo/llm/backends/` — use constants
+- Never hardcode model names outside `geointent/llm/backends/` — use constants
 
 ## Ambiguity Resolution
 - Ambiguous spatial terms that require domain context: near, close, adjacent, along,
   within walking distance, next to, beside, surrounding
-- Each ambiguous term maps to a resolver function in `nlgeo/resolver/terms.py`
+- Each ambiguous term maps to a resolver function in `geointent/compiler/resolver/terms.py`
 - Resolvers receive `SpatialContext` and return a resolved predicate + assumption string
 - Never silently pick a default — always surface the assumption in TranslationResult
 - Unit conversion is mandatory: always normalize to meters internally, convert back for display
 
 ## Schema Injection
-- Schema introspection for PostGIS: `nlgeo.schema.from_postgis(conn)` — reads
+- Schema introspection for PostGIS: `geointent.schema.from_postgis(conn)` — reads
   geometry_columns, information_schema.columns, spatial_ref_sys
 - Schema can also be provided as a plain dict for testing / offline use
 - In LLM prompts, serialize schema as compact JSON — include: table name, column names,
@@ -78,7 +74,7 @@ The result object is the public API surface. Never change its shape without a ma
 
 ## File Structure
 ```
-nlgeo/
+geointent/
   __init__.py          # public API: Engine, SpatialContext, Schema, TranslationResult
   engine.py            # Engine class — orchestrates the pipeline
   types.py             # all shared types / dataclasses / enums
@@ -113,12 +109,12 @@ nlgeo/
 
 ## Public API Surface (Engine class)
 ```python
-engine = nlgeo.Engine(llm="claude", context=SpatialContext(...))
+engine = geointent.Engine(llm="claude", context=SpatialContext(...))
 result = engine.translate("find all manholes within 50 feet of a gas line")
 result = engine.translate("...", dialect=Dialect.GEOPANDAS)
 gdf = engine.execute(result, conn)            # optional — requires sqlalchemy conn
-schema = nlgeo.Schema.from_postgis(conn)      # introspect live DB
-schema = nlgeo.Schema.from_dict({...})        # offline / test
+schema = geointent.Schema.from_postgis(conn) # introspect live DB
+schema = geointent.Schema.from_dict({...})   # offline / test
 ```
 
 ## What NOT to build in v1

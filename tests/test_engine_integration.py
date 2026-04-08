@@ -6,8 +6,8 @@ import os
 
 import pytest
 
-from nlgeo.engine import Engine
-from nlgeo.types import Dialect
+from geointent.engine import Engine
+from geointent.types import Dialect
 
 
 @pytest.mark.live

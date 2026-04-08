@@ -6,14 +6,14 @@ import os
 
 import pytest
 
-import nlgeo
-from nlgeo.llm.backends.mock import MockLLMBackend
-from nlgeo.types import IntentResult, SpatialContext
+import geointent
+from geointent.llm.backends.mock import MockLLMBackend
+from geointent.types import IntentResult, SpatialContext
 
 
 @pytest.fixture
 def utility_schema():
-    return nlgeo.Schema.from_dict(
+    return geointent.Schema.from_dict(
         {
             "tables": [
                 {
@@ -50,7 +50,7 @@ def utility_schema():
 
 @pytest.fixture
 def parcel_schema():
-    return nlgeo.Schema.from_dict(
+    return geointent.Schema.from_dict(
         {
             "tables": [
                 {

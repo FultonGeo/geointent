@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from nlgeo.compiler.resolver import domains
-from nlgeo.types import ResolvedSpatialTerm, SpatialContext
-from nlgeo.units import to_meters
+from geointent.compiler.resolver import domains
+from geointent.types import ResolvedSpatialTerm, SpatialContext
+from geointent.units import to_meters
 
 
 def _domain_or_default(ctx: SpatialContext) -> str:

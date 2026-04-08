@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.units import to_meters
+from geointent.units import to_meters
 
 
 def test_unit_converter():

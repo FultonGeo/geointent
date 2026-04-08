@@ -8,7 +8,7 @@ resolver logic, and SQL generator are built and tested against mocks before the 
 API is wired in Phase 3.
 
 **Stack:** Python · Pydantic · Anthropic API · Shapely · pyproj · PostGIS · DuckDB  
-**PyPI package:** [`geoint`](https://pypi.org/project/geoint/) · **GitHub:** [FultonGeo/geointent](https://github.com/FultonGeo/geointent) · **Import:** `nlgeo`  
+**PyPI / import:** [`geointent`](https://pypi.org/project/geointent/) · **GitHub:** [FultonGeo/geointent](https://github.com/FultonGeo/geointent)  
 **Target:** PyPI 0.1.0 publish at end of Phase 5
 
 **Local PostGIS for testing:** Use **Docker Desktop** (or any Docker engine) to run PostgreSQL + PostGIS on `localhost`, load **seed data** from `TESTING.md`, and point integration tests at that instance. That gives repeatable schema introspection and `ST_DWithin` / execution checks without a shared server. CI can use the same image and seed pattern as a service container; developers typically run the equivalent container locally.
@@ -25,7 +25,7 @@ Update this table when phases advance or gates change.
 | **2** PostGIS codegen | **Done** | `test_codegen_postgis`, snapshots under `tests/snapshots/`, `test_schema_postgis` + `test_execute_postgis` (**integration**), `MockLLMBackend`, `Engine` |
 | **3** LLM backend | **Done** | `prompt.py`, `claude.py`, `intent.py`, `test_prompt`, `test_claude_backend`, `test_engine_integration` (**live**); `test_alternatives_populated` (mock) |
 | **4** More dialects | **Done** | `geopandas`, `geojson`, `duckdb` codegen + tests; `test_dialect_routing`, `Engine.execute`; `tests/realdata/test_overture_duckdb.py` (**realdata**) |
-| **5** Polish & publish | **Mostly done** | README, `examples/`, `.github/workflows/workflow.yml`, `test_openai_backend`, `test_ollama_backend`; **manual:** TestPyPI / PyPI [`geoint`](https://pypi.org/project/geoint/) |
+| **5** Polish & publish | **Mostly done** | README, `examples/`, `.github/workflows/workflow.yml`, `test_openai_backend`, `test_ollama_backend`; **manual:** TestPyPI / PyPI [`geointent`](https://pypi.org/project/geointent/) |
 
 **Quick verify (local):**
 
@@ -45,18 +45,18 @@ python examples/utility_network.py
 
 ### What to build
 
-- `nlgeo/__init__.py` — public API surface: Engine, SpatialContext, Schema, TranslationResult
-- `nlgeo/types.py` — all Pydantic models and enums (no logic, just shapes)
+- `geointent/__init__.py` — public API: `import geointent` (Engine, SpatialContext, Schema, TranslationResult)
+- `geointent/types.py` — all Pydantic models and enums (no logic, just shapes)
   - `Dialect` enum: POSTGIS | GEOPANDAS | GEOJSON | CQL2 | DUCKDB
   - `SpatialContext` — domain, bbox, units, srid, schema
   - `Schema` — tables: list[TableMeta]
   - `TranslationResult` — query, dialect, assumptions, alternatives, confidence
-- `nlgeo/schema.py` — Schema.from_dict() and Schema.to_prompt_str()
+- `geointent/schema.py` — Schema.from_dict() and Schema.to_prompt_str()
   - `to_prompt_str()` produces compact JSON for LLM prompt injection
-- `nlgeo/compiler/resolver/terms.py` — AmbiguityResolver stubs for all 8 spatial terms
+- `geointent/compiler/resolver/terms.py` — AmbiguityResolver stubs for all 8 spatial terms
   - Terms: near, adjacent, along, within, beside, surrounding, inside, outside
   - Each resolver receives SpatialContext and returns resolved predicate + assumption string
-- `nlgeo/compiler/resolver/domains.py` — threshold tables per domain
+- `geointent/compiler/resolver/domains.py` — threshold tables per domain
   - Domains: utility_network, parcel, environmental
   - Each domain has default distances per ambiguous term
 - Unit converter utility — feet/miles/km all normalize to meters internally
@@ -65,12 +65,11 @@ python examples/utility_network.py
 ### File structure after Phase 1
 
 ```
-geointent/
+repo root/
   pyproject.toml
-  .cursorrules
   PLAN.md
   TESTING.md
-  nlgeo/
+  geointent/              # Python package (import geointent)
     __init__.py
     types.py
     schema.py
@@ -116,20 +115,20 @@ Follow the cursorrules file structure.
 - `IntentResult` Pydantic model — what the LLM will eventually return as structured JSON
   - Fields: predicate, subject_table, ref_table, distance, distance_unit, filters, assumptions
 - `MockLLMBackend` — deterministic stub keyed on NL input string, used for all unit tests
-- `nlgeo/compiler/codegen/postgis.py` — IntentResult → parameterized PostGIS SQL
+- `geointent/compiler/codegen/postgis.py` — IntentResult → parameterized PostGIS SQL
   - Must use %s placeholders, never f-strings with user values
   - Distance must be in CRS units (convert from meters if CRS is projected)
   - Include SRID comment when unit conversion was applied
 - Snapshot test infrastructure via pytest-snapshot, first 3 SQL snapshots committed
 - PostGIS container (e.g. `postgis/postgis` via Docker Desktop) seeded with utility schema — follow seed SQL in `TESTING.md`
-- `nlgeo/schema.py` — add Schema.from_postgis(conn) introspection
+- `geointent/schema.py` — add Schema.from_postgis(conn) introspection
   - Reads geometry_columns, information_schema.columns, spatial_ref_sys
 - Stub Engine class — wires MockLLM → resolver → PostGIS codegen → TranslationResult
 
 ### File structure additions
 
 ```
-nlgeo/
+geointent/
   compiler/
     codegen/
       __init__.py
@@ -174,23 +173,23 @@ Schema.from_postgis, stub Engine, and all gate tests including Docker integratio
 
 ### What to build
 
-- `nlgeo/llm/prompt.py` — system prompt builder
+- `geointent/llm/prompt.py` — system prompt builder
   - Injects: schema JSON + SpatialContext + domain thresholds + JSON output instructions
   - LLM must be instructed to return only valid JSON matching IntentResult shape
-- `nlgeo/llm/backends/claude.py` — Anthropic API call + JSON parse + Pydantic validation
+- `geointent/llm/backends/claude.py` — Anthropic API call + JSON parse + Pydantic validation
   - Retry with exponential backoff, max 3 attempts
-  - Raises `nlgeo.LLMError` after max retries
+  - Raises `geointent.LLMError` after max retries
 - Wire Claude backend into Engine, replacing MockLLMBackend
 - Alternatives generation — ask LLM for 2 alternate interpretations at different thresholds
   - Populates TranslationResult.alternatives list
-- `nlgeo/compiler/intent.py` — IntentParser wraps LLM call + resolver pass
+- `geointent/compiler/intent.py` — IntentParser wraps LLM call + resolver pass
   - Resolver overrides LLM distance when domain threshold is more specific
 - Confidence scoring — heuristic based on LLM response coherence + resolver agreement
 
 ### File structure additions
 
 ```
-nlgeo/
+geointent/
   llm/
     prompt.py
     backends/
@@ -211,7 +210,7 @@ tests/
 | `test_prompt_contains_domain` | Built prompt includes utility_network domain context |
 | `test_claude_backend_parses_valid_json` | Mock HTTP response with valid JSON → IntentResult |
 | `test_claude_backend_retries_on_failure` | First call raises, second succeeds |
-| `test_claude_backend_raises_after_max_retries` | 3 failures → nlgeo.LLMError |
+| `test_claude_backend_raises_after_max_retries` | 3 failures → `geointent.LLMError` |
 | `test_e2e_manhole_query` (live) | "manholes within 50 feet of a gas line" → SQL with ST_DWithin, confidence > 0.7 |
 | `test_alternatives_populated` | result.alternatives has 2 items with different thresholds |
 
@@ -231,11 +230,11 @@ working for unit tests.
 
 ### What to build
 
-- `nlgeo/compiler/codegen/geopandas.py` — IntentResult → executable Shapely/GeoPandas Python
+- `geointent/compiler/codegen/geopandas.py` — IntentResult → executable Shapely/GeoPandas Python
   - Output string must be exec-able with only geopandas and shapely imported
   - "near" predicate → .buffer() call; "inside" → .within() or spatial join
-- `nlgeo/compiler/codegen/geojson.py` — GeoJSON filter expression per RFC 7946
-- `nlgeo/compiler/codegen/duckdb.py` — DuckDB spatial SQL dialect
+- `geointent/compiler/codegen/geojson.py` — GeoJSON filter expression per RFC 7946
+- `geointent/compiler/codegen/duckdb.py` — DuckDB spatial SQL dialect
   - Targets Overture GeoParquet schema on S3
   - bbox filters for cheap row group pruning; ST_DWithin for precision
 - `dialect=` parameter added to Engine.translate() — routes to correct codegen module
@@ -245,7 +244,7 @@ working for unit tests.
 ### File structure additions
 
 ```
-nlgeo/
+geointent/
   compiler/
     codegen/
       geopandas.py
@@ -294,8 +293,8 @@ against Overture data.
 - `.github/workflows/workflow.yml` — CI config (standard name: GitHub discovers any `*.yml` in `.github/workflows/`)
   - Unit suite on every push (no external deps)
   - Integration suite on PR to main (PostGIS service container — same image/seed idea as local Docker Desktop)
-- `nlgeo/llm/backends/openai.py` — OpenAI backend, same interface as Claude
-- `nlgeo/llm/backends/ollama.py` — Ollama local backend, same retry logic
+- `geointent/llm/backends/openai.py` — OpenAI backend, same interface as Claude
+- `geointent/llm/backends/ollama.py` — Ollama local backend, same retry logic
 - pyproject.toml finalized for PyPI — version 0.1.0, extras: `[postgis]`, `[duckdb]`
 - Publish to TestPyPI first, verify clean install, then publish to PyPI
 
@@ -307,7 +306,7 @@ against Overture data.
 | `test_ollama_backend` | Local endpoint, same retry logic |
 | CI green | Unit suite passes on push, integration suite passes on PR |
 | Example scripts | `python examples/utility_network.py` exits 0 |
-| TestPyPI install | `pip install geoint` in clean venv, `import nlgeo` works |
+| TestPyPI install | `pip install geointent` in clean venv, `import geointent` works |
 
 ### Cursor prompt
 ```
@@ -320,14 +319,14 @@ GitHub Actions CI config, and prepare pyproject.toml for PyPI publish.
 ## Public API surface (target for 0.1.0)
 
 ```python
-import nlgeo
-from nlgeo import Dialect
+import geointent
+from geointent import Dialect
 
 # initialize with schema and context
-engine = nlgeo.Engine(
+engine = geointent.Engine(
     llm="claude",       # or "openai", "ollama"
-    context=nlgeo.SpatialContext(
-        schema=nlgeo.Schema.from_postgis(conn),   # or Schema.from_dict({...})
+    context=geointent.SpatialContext(
+        schema=geointent.Schema.from_postgis(conn),   # or Schema.from_dict({...})
         domain="utility_network",
         units="feet",
         srid=2965,

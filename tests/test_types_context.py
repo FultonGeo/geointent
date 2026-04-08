@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.types import SpatialContext
+from geointent.types import SpatialContext
 
 
 def test_spatial_context_srid_accepts_known(utility_schema):

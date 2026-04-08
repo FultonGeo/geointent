@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.compiler.codegen import postgis
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.compiler.codegen import postgis
+from geointent.types import IntentResult, SpatialContext
 
 
 def test_postgis_dwithin_basic(utility_context):
@@ -112,7 +112,7 @@ def test_execute_postgis(postgis_conn, utility_context, mock_llm):
 
 
 def _run_generated_sql_executes(postgis_conn, utility_context, mock_llm):
-    from nlgeo.engine import Engine
+    from geointent.engine import Engine
 
     mock_llm.set_response(
         "manholes within 50 feet of a gas line",

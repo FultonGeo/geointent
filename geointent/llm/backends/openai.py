@@ -8,7 +8,7 @@ import random
 import time
 from typing import Any
 
-from nlgeo.types import LLMError
+from geointent.types import LLMError
 
 DEFAULT_MODEL = "gpt-4o-mini"
 

@@ -3,7 +3,7 @@ requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
-name = "geoint"
+name = "geointent"
 version = "0.1.0"
 description = "Natural language to spatial geometry — compiles NL to PostGIS, GeoPandas, GeoJSON, DuckDB"
 readme = "README.md"
@@ -44,7 +44,7 @@ Repository = "https://github.com/FultonGeo/geointent.git"
 Issues = "https://github.com/FultonGeo/geointent/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["nlgeo"]
+packages = ["geointent"]
 
 [tool.pytest.ini_options]
 markers = [

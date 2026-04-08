@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from nlgeo.types import IntentResult, SpatialContext
-from nlgeo.units import to_meters
+from geointent.types import IntentResult, SpatialContext
+from geointent.units import to_meters
 
 
 def render_intent(intent: IntentResult, ctx: SpatialContext) -> str:

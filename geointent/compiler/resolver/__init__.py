@@ -1,6 +1,6 @@
 """Ambiguity resolvers for spatial terms."""
 
-from nlgeo.compiler.resolver.terms import (
+from geointent.compiler.resolver.terms import (
     resolve_adjacent,
     resolve_along,
     resolve_beside,

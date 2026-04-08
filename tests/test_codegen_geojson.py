@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from nlgeo.compiler.codegen import geojson as geojson_codegen
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.compiler.codegen import geojson as geojson_codegen
+from geointent.types import IntentResult, SpatialContext
 
 
 def test_geojson_filter_valid(parcel_schema):

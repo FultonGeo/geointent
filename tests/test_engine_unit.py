@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from nlgeo.engine import Engine
-from nlgeo.types import Dialect, IntentResult
+from geointent.engine import Engine
+from geointent.types import Dialect, IntentResult
 
 
 def test_engine_mock_pipeline(utility_context, mock_llm):

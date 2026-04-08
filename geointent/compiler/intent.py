@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from nlgeo.compiler.resolver import terms as term_resolvers
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.compiler.resolver import terms as term_resolvers
+from geointent.types import IntentResult, SpatialContext
 
 
 class IntentBackend(Protocol):

@@ -1,4 +1,4 @@
-"""Shared Pydantic models and enums for nlgeo."""
+"""Shared Pydantic models and enums for geointent."""
 
 from __future__ import annotations
 
@@ -32,18 +32,18 @@ class Schema(BaseModel):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Schema:
-        from nlgeo.schema import schema_from_dict
+        from geointent.schema import schema_from_dict
 
         return schema_from_dict(data)
 
     @classmethod
     def from_postgis(cls, conn: Any) -> Schema:
-        from nlgeo.schema import from_postgis as fp
+        from geointent.schema import from_postgis as fp
 
         return fp(conn)
 
     def to_prompt_str(self) -> str:
-        from nlgeo.schema import schema_to_prompt_str
+        from geointent.schema import schema_to_prompt_str
 
         return schema_to_prompt_str(self)
 

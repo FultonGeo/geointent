@@ -9,8 +9,8 @@ import pytest
 from shapely.geometry import LineString, Point
 from shapely.ops import unary_union
 
-from nlgeo.compiler.codegen import geopandas as geopandas_codegen
-from nlgeo.types import IntentResult, SpatialContext
+from geointent.compiler.codegen import geopandas as geopandas_codegen
+from geointent.types import IntentResult, SpatialContext
 
 
 def test_geopandas_uses_buffer(utility_context):

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-import nlgeo
+import geointent
 
 
 def test_schema_from_dict(utility_schema):

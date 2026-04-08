@@ -10,7 +10,7 @@ from typing import Any
 
 import httpx
 
-from nlgeo.types import LLMError
+from geointent.types import LLMError
 
 DEFAULT_BASE = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "llama3.2"

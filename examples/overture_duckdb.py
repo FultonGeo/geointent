@@ -3,13 +3,13 @@
 
 from __future__ import annotations
 
-import nlgeo
-from nlgeo.llm.backends.mock import MockLLMBackend
-from nlgeo.types import Dialect, IntentResult, SpatialContext
+import geointent
+from geointent.llm.backends.mock import MockLLMBackend
+from geointent.types import Dialect, IntentResult, SpatialContext
 
 
 def main() -> None:
-    schema = nlgeo.Schema.from_dict(
+    schema = geointent.Schema.from_dict(
         {
             "tables": [
                 {
@@ -42,7 +42,7 @@ def main() -> None:
             assumptions={},
         ),
     )
-    engine = nlgeo.Engine(llm="mock", context=ctx, mock=mock)
+    engine = geointent.Engine(llm="mock", context=ctx, mock=mock)
     result = engine.translate("places near a park", dialect=Dialect.DUCKDB)
     print(result.query)
 

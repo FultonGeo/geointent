@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from nlgeo.compiler import intent as intent_mod
-from nlgeo.compiler.codegen import duckdb as duckdb_codegen
-from nlgeo.compiler.codegen import geojson as geojson_codegen
-from nlgeo.compiler.codegen import geopandas as geopandas_codegen
-from nlgeo.compiler.codegen import postgis as postgis_codegen
-from nlgeo.llm.backends.mock import MockLLMBackend
-from nlgeo.types import Dialect, IntentResult, SpatialContext, TranslationResult
+from geointent.compiler import intent as intent_mod
+from geointent.compiler.codegen import duckdb as duckdb_codegen
+from geointent.compiler.codegen import geojson as geojson_codegen
+from geointent.compiler.codegen import geopandas as geopandas_codegen
+from geointent.compiler.codegen import postgis as postgis_codegen
+from geointent.llm.backends.mock import MockLLMBackend
+from geointent.types import Dialect, IntentResult, SpatialContext, TranslationResult
 
 
 class Engine:
@@ -43,19 +43,19 @@ class Engine:
             return self._mock
         if self._llm_name == "claude":
             if self._claude is None:
-                from nlgeo.llm.backends import claude
+                from geointent.llm.backends import claude
 
                 self._claude = claude.ClaudeBackend()
             return self._claude
         if self._llm_name == "openai":
             if self._openai is None:
-                from nlgeo.llm.backends import openai as openai_be
+                from geointent.llm.backends import openai as openai_be
 
                 self._openai = openai_be.OpenAIBackend()
             return self._openai
         if self._llm_name == "ollama":
             if self._ollama is None:
-                from nlgeo.llm.backends import ollama as ollama_be
+                from geointent.llm.backends import ollama as ollama_be
 
                 self._ollama = ollama_be.OllamaBackend()
             return self._ollama
@@ -74,7 +74,7 @@ class Engine:
         if self._llm_name == "mock":
             base_intent = backend.complete_intent(nl, self._ctx)
         else:
-            from nlgeo.llm import prompt
+            from geointent.llm import prompt
 
             sys_prompt = prompt.build_system_prompt(self._ctx)
             raw = backend.complete_json(sys_prompt, nl)
