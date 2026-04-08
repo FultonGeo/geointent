@@ -22,4 +22,4 @@ __all__ = [
     "from_postgis",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

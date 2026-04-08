@@ -25,7 +25,7 @@ Update this table when phases advance or gates change.
 | **2** PostGIS codegen | **Done** | `test_codegen_postgis`, snapshots under `tests/snapshots/`, `test_schema_postgis` + `test_execute_postgis` (**integration**), `MockLLMBackend`, `Engine` |
 | **3** LLM backend | **Done** | `prompt.py`, `claude.py`, `intent.py`, `test_prompt`, `test_claude_backend`, `test_engine_integration` (**live**); `test_alternatives_populated` (mock) |
 | **4** More dialects | **Done** | `geopandas`, `geojson`, `duckdb` codegen + tests; `test_dialect_routing`, `Engine.execute`; `tests/realdata/test_overture_duckdb.py` (**realdata**) |
-| **5** Polish & publish | **Mostly done** | README, `examples/`, `.github/workflows/workflow.yml`, `test_openai_backend`, `test_ollama_backend`; **manual:** TestPyPI / PyPI [`geointent`](https://pypi.org/project/geointent/) |
+| **5** Polish & publish | **Mostly done** | **`workflow.yml`** only: CI + tag `v*` → build + PyPI; examples, backend tests; **you configure:** PyPI trusted publisher for repo [`FultonGeo/geointent`](https://github.com/FultonGeo/geointent), workflow file **`workflow.yml`**, workflow name **`CI`** |
 
 **Quick verify (local):**
 
@@ -35,6 +35,8 @@ pytest tests/ -m integration                                        # needs Post
 pytest tests/ -m live                                               # needs ANTHROPIC_API_KEY
 python examples/utility_network.py
 ```
+
+**Release to PyPI:** Match `pyproject.toml` version to the tag (e.g. `version = "0.1.0"` and tag `v0.1.0`). Push tag → **`workflow.yml`** runs the publish jobs (`python -m build` + `pypa/gh-action-pypi-publish`). Register Trusted Publishing with workflow file **`workflow.yml`** and name **`CI`**.
 
 ---
 
@@ -279,7 +281,7 @@ against Overture data.
 ---
 
 ## Phase 5 — Polish, CI, and publish
-**Status:** mostly done (PyPI publish manual)  
+**Status:** mostly done (enable PyPI Trusted Publisher; release via `git tag v0.1.0 && git push origin v0.1.0`)  
 **Estimate:** ~2 days  
 **Dependencies:** PyPI account, GitHub repo, all phases complete
 
@@ -290,7 +292,7 @@ against Overture data.
   - `utility_network.py` — PostGIS, Indiana State Plane, manholes near gas lines
   - `overture_duckdb.py` — DuckDB against Overture S3, no local DB required
   - `parcel_analysis.py` — parcel/flood zone intersection, GeoJSON output
-- `.github/workflows/workflow.yml` — CI config (standard name: GitHub discovers any `*.yml` in `.github/workflows/`)
+- `.github/workflows/workflow.yml` — CI (tests on push/PR) and PyPI publish on tag `v*` ([Trusted Publishing](https://docs.pypi.org/trusted-publishers/); workflow name **`CI`**)
   - Unit suite on every push (no external deps)
   - Integration suite on PR to main (PostGIS service container — same image/seed idea as local Docker Desktop)
 - `geointent/llm/backends/openai.py` — OpenAI backend, same interface as Claude
